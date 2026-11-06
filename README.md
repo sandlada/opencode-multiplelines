@@ -1,16 +1,27 @@
 # @sandlada/opencode-multiplelines
 
-为 **OpenCode TUI v2** 准备的插件（只支持 v2，V1 完全无效）。
-本包仅做一件事：增加一个名为 **Multiple Lines** 的布尔设置（`on`/`off` 表示开和关）。
+A plugin for **OpenCode TUI v2** only (V1 is completely unsupported). It does exactly one thing: adds a boolean setting named **Multiple Lines** (`on`/`off`, OpenCode TUI uses `on`/`off` for on/off).
 
-- **关闭（`off`，默认）**：保持 OpenCode 原本行为 —— 聊天输入框中 `Enter` 发送，换行用 `Shift+Enter` / `Ctrl+Enter` / `Alt+Enter` / `Ctrl+J`。
-- **开启（`on`）**：`Enter` 改为换行；原本的换行键（`Shift+Enter` / `Ctrl+Enter` / `Alt+Enter` / `Ctrl+J`）改为发送。
+- **Off (default)**: keeps OpenCode's default behavior — in the chat input, `Enter` sends; newlines use `Shift+Enter` / `Ctrl+Enter` / `Alt+Enter` / `Ctrl+J`.
+- **On**: `Enter` inserts a newline; the original newline keys (`Shift+Enter` / `Ctrl+Enter` / `Alt+Enter` / `Ctrl+J`) send the prompt.
 
-设置是持久化的（重启后保留，跨 TUI 实例同步），且仅影响聊天输入框：对话框、autocomplete 弹出、出队队列等模态界面中的 `Enter` 不受影响。
+The setting is persistent (survives restarts, synced across TUI instances) and only affects the chat input: `Enter` inside dialogs, autocomplete popups, queued prompts, etc. is untouched.
 
-## 安装
+## Install
 
-本包只提供 TUI 入口（`./tui`），请加到 OpenCode 的 `cli.json` 的 `plugins`（不是 `opencode.json(c)`）：
+This package ships only the TUI entrypoint (`./tui`) and **only supports OpenCode v2** (`engines.opencode` requires `>=2.0.0`). V1 silently ignores it.
+
+### Option 1: opencode CLI (recommended)
+
+```bash
+opencode plugin add @sandlada/opencode-multiplelines
+```
+
+This automatically writes the package into the global `plugins` array of `~/.config/opencode/cli.json` (TUI-only plugins belong in `cli.json`, not `opencode.json(c)`) and installs dependencies.
+
+### Option 2: manual configuration
+
+Edit `~/.config/opencode/cli.json` directly:
 
 ```jsonc title="~/.config/opencode/cli.json"
 {
@@ -19,31 +30,35 @@
 }
 ```
 
-本地开发时可直接指向本地目录：
+### Local development
 
 ```jsonc title="~/.config/opencode/cli.json"
 {
   "$schema": "https://opencode.ai/v2/cli.json",
-  "plugins": ["./plugins/multiple-lines"]
+  "plugins": ["E:\\projects\\sandlada\\opencode-multiplelines"]
 }
 ```
 
-> 只支持 OpenCode v2（`engines.opencode` 要求 `>=2.0.0`）。V1 会直接忽略本包，不会报错，也不会误改行为。
+Or override temporarily with `OPENCODE_CLI_CONFIG_CONTENT`:
 
-## 使用
+```bash
+OPENCODE_CLI_CONFIG_CONTENT='{"plugins":["E:\\projects\\sandlada\\opencode-multiplelines"]}' opencode
+```
 
-打开 **Multiple Lines** 设置，二选一：
+## Usage
 
-1. 按 `Ctrl+P`，运行命令 **Multiple Lines**，在弹出的对话框中选择 `on` / `off`；
-2. 在输入框输入 slash 命令：
-   - `/multiple-lines` —— 打开上述对话框；
-   - `/multiple-lines on` —— 开启；
-   - `/multiple-lines off` —— 关闭；
-   - `/multiple-lines toggle` —— 直接翻转。
+Open the **Multiple Lines** setting, two ways:
 
-每次切换都会弹出 `Multiple Lines: on/off` 的 toast 提示。当前值保存在插件 storage（`settings`），默认 `off`。
+1. Press `Ctrl+P`, run the **Multiple Lines** command, then pick `on` / `off` in the dialog;
+2. Type a slash command in the input:
+   - `/multiple-lines` — opens the dialog above;
+   - `/multiple-lines on` — turn on;
+   - `/multiple-lines off` — turn off;
+   - `/multiple-lines toggle` — flip directly.
 
-也可以在 `cli.json` 的插件 options 里写初始值（仅首次、无存储文件时生效，之后以存储为准）：
+Each change shows a `Multiple Lines: on/off` toast. The current value is stored in plugin storage (`settings`), default `off`.
+
+You can also seed the initial value via plugin options in `cli.json` (only the first time, when no storage file exists; afterward storage wins):
 
 ```jsonc
 {
@@ -56,34 +71,34 @@
 }
 ```
 
-## 原理（小结）
+## How it works
 
-插件注册两层 keymap：
+Two keymap layers are registered:
 
-- `global` 的命令层：提供上述设置命令；
-- `base` 的交换层（`priority: 100`，高于宿主 managed textarea 层的默认 0），`enabled` 绑定设置值：
-  - 开启时，`return` 分发 `input.newline`，`shift+return` / `ctrl+return` / `alt+return` / `ctrl+j` 分发 `input.submit`；
-  - `run` 内会检查当前焦点是否为多行 `Textarea`（排除单行的 `Input`），非聊天输入框时返回 `false` 让按键继续分发；
-  - 交换层只在 `base` 模式生效，`modal`/`autocomplete` 等模态只在对应模式生效，因此对话框的 `Enter` 不会误换行。
+- `global` command layer: provides the setting command above;
+- `base` swap layer (`priority: 100`, above the host managed-textarea layer's default `0`), `enabled` bound to the setting:
+  - When on, `return` dispatches `input.newline`; `shift+return` / `ctrl+return` / `alt+return` / `ctrl+j` dispatch `input.submit`;
+  - The `run` checks that the focused editor is a multiline `Textarea` (excludes single-line `Input`); otherwise it returns `false` so the keystroke continues to its normal handler;
+  - The swap layer only activates in `base` mode; `modal`/`autocomplete` modes keep their own bindings, so dialog `Enter` is never mis-swapped.
 
-> 注：本插件按 OpenCode v2 的默认键位实现（`input.submit` = `return`，`input.newline` = `shift+return,ctrl+return,alt+return,ctrl+j`）。如果你在 `cli.json` 里改过这两个键位，本插件仍会拦截上述默认键，改动后的键位需要自行在插件外的 keybind 中适配。
+> Note: this plugin targets OpenCode v2's default keybinds (`input.submit` = `return`, `input.newline` = `shift+return,ctrl+return,alt+return,ctrl+j`). If you override those two keybinds in `cli.json`, the plugin still intercepts the default keys listed above; adapt the extra keys in your own keybind config.
 
-## 开发与验证
+## Development & verification
 
 ```bash
 pnpm install
 pnpm typecheck   # tsc --noEmit
-pnpm test            # bun test（settings 纯逻辑 + mock context 集成测试）
+pnpm test        # bun test (pure-logic + mock-context integration tests)
 pnpm run pack:dry-run
 ```
 
-单测覆盖：设置标题、on/off 解析、slash 入参、options 初始值、焦点的多行/单行区分、开启/关闭的交换层行为与回退。
+Coverage: setting title, on/off parsing, slash-command input, options initial value, multiline-vs-single-line focus, on/off swap behavior and fallback.
 
-## 目录
+## Layout
 
 ```text
-package.json     # npm 插件清单（exports "./tui"，仅 v2）
-src/tui.ts       # 插件入口（Plugin.define）
-src/settings.ts  # 纯逻辑（标题、键名、解析、兜底判断）
-test/*.test.ts   # Bun 测试
+package.json     # npm plugin manifest (exports "./tui", v2 only)
+src/tui.ts       # plugin entry (Plugin.define)
+src/settings.ts  # pure logic (title, key names, parsing, fallback detection)
+test/*.test.ts   # Bun tests
 ```
