@@ -1,0 +1,51 @@
+{
+  "name": "@sandlada/opencode-multiplelines",
+  "version": "1.0.0",
+  "description": "OpenCode TUI v2 plugin that adds a Multiple Lines setting: when on, Enter inserts a newline in the chat prompt and the usual newline keys (Shift+Enter, Ctrl+Enter, Alt+Enter, Ctrl+J) submit.",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "opencode-tui",
+    "tui",
+    "multiple-lines",
+    "newline",
+    "enter-to-newline"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./tui": "./src/tui.ts"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "packageManager": "pnpm@12.14.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "pack:dry-run": "pnpm pack --dry-run"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.2.5"
+  },
+  "peerDependencies": {
+    "@opentui/core": ">=0.8.0"
+  },
+  "devDependencies": {
+    "@opencode/plugin": "2.2.5",
+    "@opentui/core": "0.8.2",
+    "@types/bun": "^1.4.4",
+    "@types/node": "^22.13.0",
+    "solid-js": "^1.9.18",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20",
+    "opencode": ">=2.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
