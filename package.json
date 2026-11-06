@@ -12,6 +12,7 @@
     "enter-to-newline"
   ],
   "license": "MIT",
+  "author": "Kai Orion & Sandlada",
   "type": "module",
   "exports": {
     "./tui": "./src/tui.ts"
@@ -47,5 +48,13 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sandlada/opencode-multiplelines.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sandlada/opencode-multiplelines/issues"
+  },
+  "homepage": "https://github.com/sandlada/opencode-multiplelines#readme"
 }
