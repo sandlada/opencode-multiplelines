@@ -1,6 +1,6 @@
 {
   "name": "@sandlada/opencode-multiplelines",
-  "version": "0.0.1-20261106.a",
+  "version": "0.0.1-20261106.b",
   "description": "OpenCode TUI v2 plugin that adds a Multiple Lines setting: when on, Enter inserts a newline in the chat prompt and the usual newline keys (Shift+Enter, Ctrl+Enter, Alt+Enter, Ctrl+J) submit.",
   "keywords": [
     "opencode",
@@ -14,7 +14,10 @@
   "license": "MIT",
   "author": "Kai Orion & Sandlada",
   "type": "module",
+  "main": "./src/index.ts",
   "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/index.ts",
     "./tui": "./src/tui.ts"
   },
   "files": [

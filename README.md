@@ -9,7 +9,7 @@ The setting is persistent (survives restarts, synced across TUI instances) and o
 
 ## Install
 
-This package ships only the TUI entrypoint (`./tui`) and **only supports OpenCode v2** (`engines.opencode` requires `>=2.0.0`). V1 silently ignores it.
+This package ships a TUI entrypoint (`./tui`) plus a no-op server entrypoint (`.` / `./server`) so that `opencode plugin add` can install it; it **only supports OpenCode v2** (`engines.opencode` requires `>=2.0.0`). V1 silently ignores it.
 
 ### Option 1: opencode CLI (recommended)
 
